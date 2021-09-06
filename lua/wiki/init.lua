@@ -28,6 +28,10 @@ local function get_wiki_files(wiki_dir)
     return files
 end
 
+local function trim(str)
+    return str:match( "^%s*(.-)%s*$" )
+end
+
 local function get_yaml_field(field, file, wiki_dir)
     -- match firs occurence of field in yaml block and replace with
     -- capture group
@@ -53,7 +57,7 @@ local function get_yaml_field(field, file, wiki_dir)
             res = data
         end,
     }):sync()
-    return res:gsub('%s+', '')
+    return trim(res)
 end
 
 local function get_yaml_title(file, wiki_dir)
