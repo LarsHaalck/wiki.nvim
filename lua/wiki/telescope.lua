@@ -1,62 +1,57 @@
-local pickers = require("telescope.pickers")
-local finders = require("telescope.finders")
-local sorters = require("telescope.sorters")
-local previewers = require("telescope.previewers")
-local make_entry = require("telescope.make_entry")
-local entry_display = require('telescope.pickers.entry_display')
+local config = require('wiki.config')
 
+local pickers = require('telescope.pickers')
+local finders = require('telescope.finders')
+local sorters = require('telescope.sorters')
+local previewers = require('telescope.previewers')
+local make_entry = require('telescope.make_entry')
+local entry_display = require('telescope.pickers.entry_display')
+local conf = require('telescope.config').values
+
+local wiki = require('wiki')
 local log = require('wiki.log')
 
 local M = {}
 
 M.files = function(telescope_opts, opts)
+    opts = opts or config.options
     telescope_opts = telescope_opts or {}
-    require("telescope.builtin").find_files({
-        find_command = { "fd", "--type", "f", "--extension", "md" },
-        prompt_title = "Wiki-Files",
-        cwd = "$HOME/.notes/",
+    require('telescope.builtin').find_files({
+        find_command = { 'fd', '--type', 'f', '--extension', 'md' },
+        prompt_title = 'Wiki-Files',
+        cwd = tostring(opts.wiki_dir),
     })
-end
-
-M.open_index = function()
-    vim.cmd("edit ~/.notes/index.md")
 end
 
 M.titles = function(telescope_opts, opts)
     telescope_opts = telescope_opts or {}
+    opts = opts or config.options
+    telescope_opts.cwd = tostring(opts.wiki_dir)
 
     pickers.new(telescope_opts, {
         prompt_title = 'Titles',
-        finder = finders.new_table {
-            results = {
-                { file = "work/journal.md", title = "journal", },
-                { file = "work/bla.md", title = "blub", },
-                { file = "derp/jkjskdf.md", title = "hi", },
-            },
-            entry_maker = function(entry)
-                local displayer = entry_display.create {
-                    separator = " ",
-                    items = {
-                        { width = 20 },
-                        { remaining = true },
-                    },
-                }
-                local function make_display(ent)
-                    return displayer {
-                        ent.value.file,
-                        ent.value.title,
-                    }
-                end
-
-                return {
-                    value = entry,
-                    display = make_display,
-                    ordinal = string.format('%s', entry.title)
-
-                }
-            end
+        finder = finders.new_table{
+            results = wiki.get_titles(opts),
+            entry_maker = make_entry.gen_from_vimgrep(telescope_opts),
         },
-        sorter = sorters.get_generic_fuzzy_sorter(),
+        previewer = conf.grep_previewer(telescope_opts),
+        sorter = conf.generic_sorter(telescope_opts),
+    }):find()
+end
+
+M.keywords = function(telescope_opts, opts)
+    telescope_opts = telescope_opts or {}
+    opts = opts or config.options
+    telescope_opts.cwd = tostring(opts.wiki_dir)
+
+    pickers.new(telescope_opts, {
+        prompt_title = 'Keywords',
+        finder = finders.new_table{
+            results = wiki.get_keywords(opts),
+            entry_maker = make_entry.gen_from_vimgrep(telescope_opts),
+        },
+        previewer = conf.grep_previewer(telescope_opts),
+        sorter = conf.generic_sorter(telescope_opts),
     }):find()
 end
 
