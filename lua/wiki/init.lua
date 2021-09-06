@@ -129,4 +129,29 @@ M.get_keywords = function(opts)
     return keywords
 end
 
+M.get_outgoing = function(opts)
+    opts = opts or config.options
+    local outs = {}
+    Job:new({
+        command = 'rg',
+        args = {
+            '--color=never',
+            '--no-heading',
+            '--no-filename',
+            '--no-line-number',
+            '--no-column',
+            '\\[.*\\]\\((.*.md)\\)',
+            '--only-matching',
+            '--replace',
+            '$1',
+            vim.fn.expand("%")
+        },
+        cwd = opts.wiki_dir,
+        on_stdout = function(_, data)
+            table.insert(outs, data)
+        end,
+    }):sync()
+    return outs
+end
+
 return M

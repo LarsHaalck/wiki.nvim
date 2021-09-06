@@ -55,4 +55,20 @@ M.keywords = function(telescope_opts, opts)
     }):find()
 end
 
+M.outgoing = function(telescope_opts, opts)
+    telescope_opts = telescope_opts or {}
+    opts = opts or config.options
+    telescope_opts.cwd = tostring(opts.wiki_dir)
+
+    pickers.new(telescope_opts, {
+        prompt_title = 'Keywords',
+        finder = finders.new_table{
+            results = wiki.get_outgoing(opts),
+            entry_maker = make_entry.gen_from_file(telescope_opts),
+        },
+        previewer = conf.file_previewer(telescope_opts),
+        sorter = conf.file_sorter(telescope_opts),
+    }):find()
+end
+
 return M
