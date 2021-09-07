@@ -1,4 +1,4 @@
-# wiki.nvim
+# WIP: wiki.nvim
 
 A very minimal wiki-Plugin for Neovim using relying on [vim-markdown](https://github.com/plasticboy/vim-markdown) and [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim).
 
