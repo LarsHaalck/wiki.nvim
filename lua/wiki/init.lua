@@ -18,15 +18,17 @@ end
 
 local function get_wiki_files(wiki_dir)
     local files = {}
+    local num_files = 0
     Job:new({
         command = 'fd',
         args = { '--type', 'f', '--extension', 'md' },
         cwd = tostring(wiki_dir),
         on_stdout = function(_, data)
             table.insert(files, data)
+            num_files = num_files + 1
         end,
     }):sync()
-    return files
+    return files, num_files
 end
 
 local function trim(str)
@@ -198,22 +200,38 @@ local function export_pandoc(in_file, pandoc_args, export_dir, wiki_dir)
     return err
 end
 
+local function progress(n, total)
+    local barlen = vim.fn.winwidth(0) - 30
+    local perc = (n / total)
+    local curr_bar = math.ceil(perc * barlen)
+
+    local bar = string.format(
+        "Progress: [%s%s] %03d%%",
+        string.rep("#", curr_bar),
+        string.rep(" ", barlen - curr_bar),
+        perc * 100
+    )
+    vim.cmd('echo "' .. bar .. '"')
+    vim.cmd[[redraw!]]
+end
+
 M.export_all = function(opts)
     local opts = opts or config.options
     local wiki_dir = Path:new(Path:new(opts.wiki_dir):expand())
     local export_dir = Path:new(Path:new(opts.export_dir):expand())
     export_dir:mkdir { parents = true, exists_ok = true }
-    local files = get_wiki_files(wiki_dir)
+    local files, num_files = get_wiki_files(wiki_dir)
 
     local qflist = {}
-    for _, file in pairs(files) do
+    for i, file in pairs(files) do
         local err = export_pandoc(file, opts.pandoc_args, export_dir, wiki_dir)
         if next(err) then
             table.insert(qflist, err)
         end
+        progress(i, num_files)
     end
 
-    vim.cmd [[echo "Done..."]]
+    vim.cmd [[echo "Done exporting..."]]
     if next(qflist) then
         vim.fn.setqflist(qflist, 'r')
         vim.cmd [[copen]]
@@ -228,7 +246,7 @@ M.export = function(opts)
     local file = Path:new(vim.fn.expand("%:p")):make_relative(tostring(wiki_dir))
 
     local err = export_pandoc(file, opts.pandoc_args, export_dir, wiki_dir)
-    vim.cmd [[echo "Done..."]]
+    vim.cmd [[echo "Done exporting..."]]
     if next(err) then
         vim.fn.setloclist(0, { err }, 'r')
         vim.cmd [[lopen]]
