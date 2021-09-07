@@ -1,7 +1,9 @@
 local M = {}
 
 local defaults = {
-    wiki_dir = "~/.notes"
+    wiki_dir = '~/.notes',
+    export_dir = '~/.notes/export',
+    pandoc_args = { '--mathjax', '--standalone' }
 }
 
 M.options = {}

@@ -3,15 +3,16 @@ local Path = require('plenary.path')
 local Job = require('plenary.job')
 local log = require('wiki.log')
 local finders = require('telescope.finders')
+local flatten = vim.tbl_flatten
 
 local M = {}
 
 M.setup = function(opts) config.setup(opts) end
 
 M.open_index = function(opts)
-    opts = opts or config.options
-    local wiki_dir = Path:new(Path:new(opts.wiki_dir):expand());
-    wiki_dir:mkdir({ parents = true });
+    local opts = opts or config.options
+    local wiki_dir = Path:new(Path:new(opts.wiki_dir):expand())
+    wiki_dir:mkdir { parents = true, exists_ok = true }
     vim.cmd('edit ' .. tostring((wiki_dir / 'index.md')))
 end
 
@@ -95,8 +96,8 @@ local function get_first_section(file, wiki_dir)
 end
 
 M.get_titles = function(opts)
-    opts = opts or config.options
-    local wiki_dir = Path:new(Path:new(opts.wiki_dir):expand());
+    local opts = opts or config.options
+    local wiki_dir = Path:new(Path:new(opts.wiki_dir):expand())
 
     local files = get_wiki_files(wiki_dir)
     local titles = {}
@@ -115,8 +116,8 @@ M.get_titles = function(opts)
 end
 
 M.get_keywords = function(opts)
-    opts = opts or config.options
-    local wiki_dir = Path:new(Path:new(opts.wiki_dir):expand());
+    local opts = opts or config.options
+    local wiki_dir = Path:new(Path:new(opts.wiki_dir):expand())
 
     local files = get_wiki_files(wiki_dir)
     local keywords = {}
@@ -130,7 +131,7 @@ M.get_keywords = function(opts)
 end
 
 M.get_outgoing = function(opts)
-    opts = opts or config.options
+    local opts = opts or config.options
     local outs = {}
     Job:new({
         command = 'rg',
@@ -152,6 +153,70 @@ M.get_outgoing = function(opts)
         end,
     }):sync()
     return outs
+end
+
+local function export_pandoc(in_file, pandoc_args, export_dir, wiki_dir)
+    -- get file without extension
+    local out_file = export_dir / (in_file:match('(.+)%..+$') .. '.html')
+    out_file:parent():mkdir { parents = true, exists_ok = true }
+
+    local err = {}
+    Job:new({
+        command = 'pandoc',
+        args = flatten {
+            in_file,
+            pandoc_args,
+            '-o',
+            tostring(out_file)
+        },
+        on_stderr = function(_, data)
+            err = {
+                filename = tostring(wiki_dir / in_file),
+                lnum = 1, text = data
+            }
+        end,
+        cwd = tostring(wiki_dir)
+    }):sync()
+
+    return err
+end
+
+M.export_all = function(opts)
+    local opts = opts or config.options
+    local wiki_dir = Path:new(Path:new(opts.wiki_dir):expand())
+    local export_dir = Path:new(Path:new(opts.export_dir):expand())
+    export_dir:mkdir { parents = true, exists_ok = true }
+    local files = get_wiki_files(wiki_dir)
+
+    local qflist = {}
+    for _, file in pairs(files) do
+        local err = export_pandoc(file, opts.pandoc_args, export_dir, wiki_dir)
+        if next(err) then
+            table.insert(qflist, err)
+        end
+    end
+
+    vim.cmd [[echo "Done..."]]
+    if next(qflist) then
+        vim.fn.setqflist(qflist, 'r')
+        vim.cmd [[copen]]
+    end
+end
+
+M.export = function(opts)
+    local opts = opts or config.options
+    local wiki_dir = Path:new(Path:new(opts.wiki_dir):expand())
+    local export_dir = Path:new(Path:new(opts.export_dir):expand())
+    export_dir:mkdir { parents = true, exists_ok = true }
+    local file = vim.fn.expand("%")
+    file = file:gsub(tostring(wiki_dir / ""), "")
+
+    local err = export_pandoc(file, opts.pandoc_args, export_dir, wiki_dir)
+    vim.cmd [[echo "Done..."]]
+    if next(err) then
+        vim.fn.setloclist(0, { err }, 'r')
+        vim.cmd [[lopen]]
+    end
 end
 
 return M
