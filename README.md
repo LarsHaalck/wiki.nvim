@@ -1,6 +1,6 @@
 # WIP: wiki.nvim
 
-A very minimal wiki-Plugin for Neovim using relying on [vim-markdown](https://github.com/plasticboy/vim-markdown) and [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim).
+A very minimal wiki-Plugin for Neovim using relying on [vim-markdown](https://github.com/plasticboy/vim-markdown) and [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) and [plenary.nvim](https://github.com/nvim-lua/plenary.nvim).
 
 Features
 =============================
@@ -17,6 +17,9 @@ Setup
 Using [vim-plug](https://github.com/junegunn/vim-plug):
 
 ```viml
+" Install plenary
+Plug 'nvim-lua/plenary.nvim'
+
 " Install markdown plugin
 Plug 'plasticboy/vim-markdown'
 
