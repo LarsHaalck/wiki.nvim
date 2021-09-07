@@ -95,6 +95,17 @@ local function get_first_section(file, wiki_dir)
     return title:gsub('%s+', '')
 end
 
+-- local function get_relative_to_wiki(wiki_dir, file)
+--     -- convert wiki_dir to path if needed
+--     local wiki_dir = wiki_dir
+--     if not Path.is_path(wiki_dir) then
+--         wiki_dir = Path:new(Path:new(wiki_dir):expand())
+--     end
+
+--     local file = tostring(file)
+--     return file:gsub(tostring(wiki_dir / ""), "")
+-- end
+
 M.get_titles = function(opts)
     local opts = opts or config.options
     local wiki_dir = Path:new(Path:new(opts.wiki_dir):expand())
@@ -132,6 +143,10 @@ end
 
 M.get_outgoing = function(opts)
     local opts = opts or config.options
+    local file = vim.fn.expand("%:p")
+    local parent = Path:new(Path:new(file):parent())
+    local wiki_dir = Path:new(opts.wiki_dir):expand()
+
     local outs = {}
     Job:new({
         command = 'rg',
@@ -145,13 +160,15 @@ M.get_outgoing = function(opts)
             '--only-matching',
             '--replace',
             '$1',
-            vim.fn.expand("%")
+            file
         },
         cwd = opts.wiki_dir,
         on_stdout = function(_, data)
+            local data = (parent / data):make_relative(wiki_dir)
             table.insert(outs, data)
         end,
     }):sync()
+
     return outs
 end
 
@@ -208,8 +225,7 @@ M.export = function(opts)
     local wiki_dir = Path:new(Path:new(opts.wiki_dir):expand())
     local export_dir = Path:new(Path:new(opts.export_dir):expand())
     export_dir:mkdir { parents = true, exists_ok = true }
-    local file = vim.fn.expand("%")
-    file = file:gsub(tostring(wiki_dir / ""), "")
+    local file = Path:new(vim.fn.expand("%:p")):make_relative(tostring(wiki_dir))
 
     local err = export_pandoc(file, opts.pandoc_args, export_dir, wiki_dir)
     vim.cmd [[echo "Done..."]]
