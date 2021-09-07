@@ -39,6 +39,21 @@ require('wiki').setup {
 }
 ```
 
+### Replacing md with html in links
+
+Just copy the pandoc lua-filter file `md-to-html.lua` somewhere and add a line to pandoc args:
+
+```lua
+require('wiki').setup {
+    -- ...
+    pandoc_args = {
+        -- ...
+        '--lua-filter=<PATH_TO_DIR>/md-to-html.lua',
+        -- ...
+    }
+}
+```
+
 
 ## Keymappings
 
