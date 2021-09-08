@@ -32,12 +32,11 @@ local function get_wiki_files(wiki_dir)
 end
 
 local function trim(str)
-    return str:match( "^%s*(.-)%s*$" )
+    return str:match( '^%s*(.-)%s*$' )
 end
 
 local function get_yaml_field(field, file, wiki_dir)
-    -- match firs occurence of field in yaml block and replace with
-    -- capture group
+    local re = '(.*:%d:%d:)' .. field .. ': (.*)'
     local res = ''
     Job:new({
         command = 'rg',
@@ -47,17 +46,17 @@ local function get_yaml_field(field, file, wiki_dir)
             '--with-filename',
             '--line-number',
             '--column',
-            '--max-count',
-            '1',
-            field .. ': (.*)',
-            '--only-matching',
-            '--replace',
-            '$1',
+            '--multiline',
+            '--multiline-dotall',
+            '\\-\\-\\-.*(\\-\\-\\-|\\.\\.\\.)',
             file
         },
         cwd = tostring(wiki_dir),
         on_stdout = function(_, data)
-            res = data
+            local ca, cb = data:match(re)
+            if ca and cb then
+                res = string.format('%s%s', ca, cb)
+            end
         end,
     }):sync()
     return trim(res)
@@ -97,17 +96,6 @@ local function get_first_section(file, wiki_dir)
     return title:gsub('%s+', '')
 end
 
--- local function get_relative_to_wiki(wiki_dir, file)
---     -- convert wiki_dir to path if needed
---     local wiki_dir = wiki_dir
---     if not Path.is_path(wiki_dir) then
---         wiki_dir = Path:new(Path:new(wiki_dir):expand())
---     end
-
---     local file = tostring(file)
---     return file:gsub(tostring(wiki_dir / ""), "")
--- end
-
 M.get_titles = function(opts)
     local opts = opts or config.options
     local wiki_dir = Path:new(Path:new(opts.wiki_dir):expand())
@@ -145,7 +133,7 @@ end
 
 M.get_outgoing = function(opts)
     local opts = opts or config.options
-    local file = vim.fn.expand("%:p")
+    local file = vim.fn.expand('%:p')
     local parent = Path:new(Path:new(file):parent())
     local wiki_dir = Path:new(opts.wiki_dir):expand()
 
@@ -206,12 +194,12 @@ local function progress(n, total)
     local curr_bar = math.ceil(perc * barlen)
 
     local bar = string.format(
-        "Progress: [%s%s] %03d%%",
-        string.rep("#", curr_bar),
-        string.rep(" ", barlen - curr_bar),
+        'Progress: [%s%s] %03d%%',
+        string.rep('#', curr_bar),
+        string.rep(' ', barlen - curr_bar),
         perc * 100
     )
-    vim.cmd('echo "' .. bar .. '"')
+    vim.cmd('echo '' .. bar .. ''')
     vim.cmd[[redraw!]]
 end
 
@@ -231,7 +219,7 @@ M.export_all = function(opts)
         progress(i, num_files)
     end
 
-    vim.cmd [[echo "Done exporting..."]]
+    vim.cmd [[echo 'Done exporting...']]
     if next(qflist) then
         vim.fn.setqflist(qflist, 'r')
         vim.cmd [[copen]]
@@ -243,10 +231,10 @@ M.export = function(opts)
     local wiki_dir = Path:new(Path:new(opts.wiki_dir):expand())
     local export_dir = Path:new(Path:new(opts.export_dir):expand())
     export_dir:mkdir { parents = true, exists_ok = true }
-    local file = Path:new(vim.fn.expand("%:p")):make_relative(tostring(wiki_dir))
+    local file = Path:new(vim.fn.expand('%:p')):make_relative(tostring(wiki_dir))
 
     local err = export_pandoc(file, opts.pandoc_args, export_dir, wiki_dir)
-    vim.cmd [[echo "Done exporting..."]]
+    vim.cmd [[echo 'Done exporting...']]
     if next(err) then
         vim.fn.setloclist(0, { err }, 'r')
         vim.cmd [[lopen]]
