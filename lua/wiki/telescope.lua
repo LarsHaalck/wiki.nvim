@@ -71,4 +71,13 @@ M.outgoing = function(telescope_opts, opts)
     }):find()
 end
 
+M.live_grep = function(telescope_opts, opts)
+    telescope_opts = telescope_opts or {}
+    opts = opts or config.options
+    telescope_opts.cwd = tostring(opts.wiki_dir)
+
+    require('telescope.builtin').live_grep(telescope_opts)
+
+end
+
 return M
