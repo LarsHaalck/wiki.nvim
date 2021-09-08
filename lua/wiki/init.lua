@@ -199,7 +199,7 @@ local function progress(n, total)
         string.rep(' ', barlen - curr_bar),
         perc * 100
     )
-    vim.cmd('echo '' .. bar .. ''')
+    vim.cmd('echo "' .. bar .. '"')
     vim.cmd[[redraw!]]
 end
 
