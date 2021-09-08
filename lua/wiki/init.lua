@@ -7,6 +7,10 @@ local flatten = vim.tbl_flatten
 
 local M = {}
 
+local function get_html(md_file)
+    return md_file:match('(.+)%..+$') .. '.html'
+end
+
 M.setup = function(opts) config.setup(opts) end
 
 M.open_index = function(opts)
@@ -14,6 +18,22 @@ M.open_index = function(opts)
     local wiki_dir = Path:new(Path:new(opts.wiki_dir):expand())
     wiki_dir:mkdir { parents = true, exists_ok = true }
     vim.cmd('edit ' .. tostring((wiki_dir / 'index.md')))
+end
+
+M.open_html = function(opts)
+    local opts = opts or config.options
+
+    local wiki_dir = Path:new(Path:new(opts.wiki_dir):expand())
+    local export_dir = Path:new(Path:new(opts.export_dir):expand())
+
+    local file = Path:new(vim.fn.expand('%:p')):make_relative(tostring(wiki_dir))
+    local outfile = export_dir / get_html(file)
+
+    if outfile:exists() then
+        vim.fn['netrw#BrowseX'](tostring(outfile), 0)
+    else
+        vim.cmd [[echo 'html file does not exists. Not exported?']]
+    end
 end
 
 local function get_wiki_files(wiki_dir)
@@ -162,9 +182,10 @@ M.get_outgoing = function(opts)
     return outs
 end
 
+
 local function export_pandoc(in_file, pandoc_args, export_dir, wiki_dir)
     -- get file without extension
-    local out_file = export_dir / (in_file:match('(.+)%..+$') .. '.html')
+    local out_file = export_dir / get_html(in_file)
     out_file:parent():mkdir { parents = true, exists_ok = true }
 
     local err = {}
