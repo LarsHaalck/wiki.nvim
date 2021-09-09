@@ -1,15 +1,22 @@
 local config = require('wiki.config')
+local log = require('wiki.log')
+
 local Path = require('plenary.path')
 local Job = require('plenary.job')
-local log = require('wiki.log')
-local finders = require('telescope.finders')
+
 local flatten = vim.tbl_flatten
 
-local M = {}
 
 local function get_html(md_file)
     return md_file:match('(.+)%..+$') .. '.html'
 end
+
+local function trim(str)
+    return str:match( '^%s*(.-)%s*$' )
+end
+
+
+local M = {}
 
 M.setup = function(opts) config.setup(opts) end
 
@@ -49,10 +56,6 @@ local function get_wiki_files(wiki_dir)
         end,
     }):sync()
     return files, num_files
-end
-
-local function trim(str)
-    return str:match( '^%s*(.-)%s*$' )
 end
 
 local function get_yaml_field(field, file, wiki_dir)
@@ -181,7 +184,6 @@ M.get_outgoing = function(opts)
 
     return outs
 end
-
 
 local function export_pandoc(in_file, pandoc_args, export_dir, wiki_dir)
     -- get file without extension
