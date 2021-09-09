@@ -1,15 +1,14 @@
+local wiki = require('wiki')
 local config = require('wiki.config')
+local log = require('wiki.log')
 
 local pickers = require('telescope.pickers')
 local finders = require('telescope.finders')
 local sorters = require('telescope.sorters')
-local previewers = require('telescope.previewers')
 local make_entry = require('telescope.make_entry')
-local entry_display = require('telescope.pickers.entry_display')
 local conf = require('telescope.config').values
+local Path = require('plenary.path')
 
-local wiki = require('wiki')
-local log = require('wiki.log')
 
 local M = {}
 
@@ -74,7 +73,14 @@ end
 M.live_grep = function(telescope_opts, opts)
     telescope_opts = telescope_opts or {}
     opts = opts or config.options
-    telescope_opts.cwd = tostring(opts.wiki_dir)
+    telescope_opts.cwd = opts.wiki_dir
+    telescope_opts.file_ignore_patterns = { "export" }
+
+    -- add export_dir to ignore patterns if export_dir is underneath wiki_dir
+    local rel_export = Path:new(opts.export_dir):make_relative(opts.wiki_dir)
+    if rel_export ~= opts.export_dir then
+        telescope_opts.file_ignore_patterns = { rel_export }
+    end
 
     require('telescope.builtin').live_grep(telescope_opts)
 
