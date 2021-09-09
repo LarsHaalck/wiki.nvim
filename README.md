@@ -6,8 +6,14 @@ Features
 =============================
 
 * Binding to open `index.md`
-* Telescope pickers for: all `md` files, titles & keywords (using yaml-block), outgoing links
+* Telescope pickers for `md` files in a globally set wiki dir:
+    * file search
+    * titles (using `yaml`-block)
+    * keywords (using `yaml`-block)
+    * outgoing `md` links
+    * string grep 
 * simple pandoc export for single or all files to html
+* open `html` file for `md` that is currently open
 
 Setup
 =============================
