@@ -264,4 +264,50 @@ M.export = function(opts)
     end
 end
 
+M.get_relative_link = function(opts, file)
+    local opts = opts or config.options
+    local wiki_dir = Path:new(Path:new(opts.wiki_dir):expand())
+    file = wiki_dir / file
+    local curr_file = Path:new(vim.fn.expand('%:p'))
+
+    local file_split = file:_split()
+    local curr_file_split = curr_file:_split()
+
+    -- compare number of common and number of uncommon path items w.r.t. curr file
+    local common_index = 0
+    local uncommon_size = 0
+    local stop_compare = false
+    for i, _ in pairs(curr_file_split) do
+        if not stop_compare then
+            if file_split[i] == curr_file_split[i] then
+                common_index = common_index + 1
+            else
+                stop_compare = true
+            end
+        end
+        if stop_compare then
+            uncommon_size = uncommon_size + 1
+        end
+    end
+
+
+    local file_size = 0
+    for _ in pairs(file_split) do file_size = file_size + 1 end
+
+    -- add ../ to go back to common path
+    -- subtract 1 to remove fie
+    local new_path = {}
+    for i = 1, uncommon_size - 1 do
+        table.insert(new_path, "..")
+    end
+
+    -- add file elements to go the other file
+    for i = common_index + 1, file_size do
+        table.insert(new_path, file_split[i])
+    end
+
+    new_path = Path:new(new_path)
+    vim.api.nvim_put({ tostring(new_path) }, "", true, true)
+end
+
 return M

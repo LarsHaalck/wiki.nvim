@@ -3,14 +3,29 @@ local config = require('wiki.config')
 local log = require('wiki.log')
 
 local pickers = require('telescope.pickers')
+local actions = require('telescope.actions')
 local finders = require('telescope.finders')
 local sorters = require('telescope.sorters')
 local make_entry = require('telescope.make_entry')
 local conf = require('telescope.config').values
 local Path = require('plenary.path')
-
+local action_state = require "telescope.actions.state"
 
 local M = {}
+
+local insert_relative_link = function(match, prompt_bufnr)
+    local file = action_state.get_selected_entry().value:match(match)
+    actions.close(prompt_bufnr)
+    wiki.get_relative_link(nil, file)
+end
+
+local insert_relative_link_from_grep = function(prompt_bufnr)
+    insert_relative_link("(.*):%d:%d:.*", prompt_bufnr)
+end
+
+local insert_relative_link_from_file = function(prompt_bufnr)
+    insert_relative_link("(.*)", prompt_bufnr)
+end
 
 M.files = function(telescope_opts, opts)
     opts = opts or config.options
@@ -19,8 +34,13 @@ M.files = function(telescope_opts, opts)
         find_command = { 'fd', '--type', 'f', '--extension', 'md' },
         prompt_title = 'Wiki-Files',
         cwd = tostring(opts.wiki_dir),
+        attach_mappings = function(_, map)
+            map('i', '<C-R>', insert_relative_link_from_file)
+            return true
+        end,
     })
 end
+
 
 M.titles = function(telescope_opts, opts)
     telescope_opts = telescope_opts or {}
@@ -35,6 +55,10 @@ M.titles = function(telescope_opts, opts)
         },
         previewer = conf.grep_previewer(telescope_opts),
         sorter = conf.generic_sorter(telescope_opts),
+        attach_mappings = function(_, map)
+            map('i', '<C-R>', insert_relative_link_from_grep)
+            return true
+        end,
     }):find()
 end
 
@@ -51,6 +75,10 @@ M.keywords = function(telescope_opts, opts)
         },
         previewer = conf.grep_previewer(telescope_opts),
         sorter = conf.generic_sorter(telescope_opts),
+        attach_mappings = function(_, map)
+            map('i', '<C-R>', insert_relative_link_from_grep)
+            return true
+        end,
     }):find()
 end
 
