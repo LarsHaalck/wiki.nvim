@@ -307,7 +307,7 @@ M.get_relative_link = function(opts, file)
     end
 
     new_path = Path:new(new_path)
-    vim.api.nvim_put({ tostring(new_path) }, "", true, true)
+    return tostring(new_path)
 end
 
 local function cword()
@@ -351,11 +351,11 @@ local function get_visual(mode)
     }
 end
 
-M.create_link = function()
+M.create_link = function(target)
     local mode = vim.api.nvim_get_mode().mode
     local word
 
-    if mode == "n" then
+    if mode == "n" or mode == "i" then
         word = cword()
     else
         word = get_visual(mode)
@@ -365,7 +365,7 @@ M.create_link = function()
     if not word then return end
 
     local line = vim.api.nvim_get_current_line()
-    local target = word.str:gsub(' ', '_'):lower()
+    local target = target or word.str:gsub(' ', '_'):lower()
 
     local str = ("%s[%s](%s)%s"):format(
         line:sub(0, word.start),

@@ -13,18 +13,36 @@ local action_state = require "telescope.actions.state"
 
 local M = {}
 
-local insert_relative_link = function(match, prompt_bufnr)
-    local file = action_state.get_selected_entry().value:match(match)
-    actions.close(prompt_bufnr)
-    wiki.get_relative_link(nil, file)
+local insert_relative_link
+do
+    local type_mapping = {
+        grep = "(.*):%d:%d:.*",
+        file = "(.*)"
+    }
+
+    local modes = {
+        link = {},
+        insert = {}
+    }
+
+    insert_relative_link = function(type, mode, prompt_bufnr)
+        if not type_mapping[type] then return end
+        if not modes[mode] then return end
+
+        local file = action_state.get_selected_entry().value:match(type_mapping[type])
+        actions.close(prompt_bufnr)
+        link = wiki.get_relative_link(nil, file)
+
+        if mode == "link" then
+            wiki.create_link(link)
+        else
+            vim.api.nvim_put({ link }, "", true, true)
+        end
+    end
 end
 
-local insert_relative_link_from_grep = function(prompt_bufnr)
-    insert_relative_link("(.*):%d:%d:.*", prompt_bufnr)
-end
-
-local insert_relative_link_from_file = function(prompt_bufnr)
-    insert_relative_link("(.*)", prompt_bufnr)
+local insert_relative_link_factory = function(type, mode)
+    return function(nr) insert_relative_link(type, mode, nr) end
 end
 
 M.files = function(telescope_opts, opts)
@@ -35,7 +53,7 @@ M.files = function(telescope_opts, opts)
         prompt_title = 'Wiki-Files',
         cwd = tostring(opts.wiki_dir),
         attach_mappings = function(_, map)
-            map('i', '<C-R>', insert_relative_link_from_file)
+            map('i', '<C-L>', insert_relative_link_factory("file", "link"))
             return true
         end,
     })
@@ -56,7 +74,7 @@ M.titles = function(telescope_opts, opts)
         previewer = conf.grep_previewer(telescope_opts),
         sorter = conf.generic_sorter(telescope_opts),
         attach_mappings = function(_, map)
-            map('i', '<C-R>', insert_relative_link_from_grep)
+            map('i', '<C-L>', insert_relative_link_factory("grep", "link"))
             return true
         end,
     }):find()
@@ -76,7 +94,7 @@ M.keywords = function(telescope_opts, opts)
         previewer = conf.grep_previewer(telescope_opts),
         sorter = conf.generic_sorter(telescope_opts),
         attach_mappings = function(_, map)
-            map('i', '<C-R>', insert_relative_link_from_grep)
+            map('i', '<C-L>', insert_relative_link_factory("grep", "link"))
             return true
         end,
     }):find()
