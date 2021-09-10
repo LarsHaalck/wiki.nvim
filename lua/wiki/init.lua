@@ -310,4 +310,75 @@ M.get_relative_link = function(opts, file)
     vim.api.nvim_put({ tostring(new_path) }, "", true, true)
 end
 
+local function cword()
+    local str = vim.fn.expand('<cword>')
+    local curr_pos = vim.api.nvim_win_get_cursor(0)
+    local line = vim.api.nvim_get_current_line()
+    local idx = vim.fn.strridx(line, str, curr_pos[2])
+
+    return {
+        str = str,
+        start = idx,
+        finish = idx + #str
+    }
+end
+
+-- TODO: replace with get_visual_selection() once merged
+-- https://github.com/neovim/neovim/pull/13896
+local function get_visual(mode)
+    local start = vim.fn.getpos("v")
+    local finish = vim.fn.getpos(".")
+    assert(start[2] == finish[2], 'Multiple line links not supported')
+
+    if start[3] > finish[3] then
+        start, finish = finish, start
+    end
+
+    local line = vim.api.nvim_get_current_line()
+    start = start[3] - 1
+    finish = finish[3]
+
+    if mode == "V" then
+        start = 0
+        finish = 2^31 - 2
+    end
+    local str = line:sub(start + 1, finish)
+
+    return {
+        str = str,
+        start = start,
+        finish = finish
+    }
+end
+
+M.create_link = function()
+    local mode = vim.api.nvim_get_mode().mode
+    local word
+
+    if mode == "n" then
+        word = cword()
+    else
+        word = get_visual(mode)
+    end
+
+    -- nothing selected
+    if not word then return end
+
+    local line = vim.api.nvim_get_current_line()
+    local target = word.str:gsub(' ', '_'):lower()
+
+    local str = ("%s[%s](%s)%s"):format(
+        line:sub(0, word.start),
+        word.str,
+        target,
+        line:sub(word.finish + 1)
+    )
+
+    vim.api.nvim_set_current_line(str)
+
+    if mode ~= "n" then
+        vim.api.nvim_input("<esc>")
+    end
+end
+
 return M
