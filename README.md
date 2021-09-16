@@ -71,6 +71,21 @@ require('wiki').setup {
 }
 ```
 
+### Replacing relative image links with absolute
+
+Just copy the pandoc lua-filter file `img-src-translate.lua` somewhere and add a line to pandoc args:
+
+```lua
+require('wiki').setup {
+    -- ...
+    pandoc_args = {
+        -- ...
+        '--lua-filter=<PATH_TO_DIR>/img-src-translate.lua',
+        -- ...
+    }
+}
+```
+
 
 ## Keymappings
 
