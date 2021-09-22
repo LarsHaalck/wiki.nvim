@@ -54,6 +54,7 @@ M.files = function(telescope_opts, opts)
         cwd = tostring(opts.wiki_dir),
         attach_mappings = function(_, map)
             map('i', '<C-L>', insert_relative_link_factory("file", "link"))
+            map('i', '<C-K>', insert_relative_link_factory("file", "insert"))
             return true
         end,
     })
@@ -75,6 +76,7 @@ M.titles = function(telescope_opts, opts)
         sorter = conf.generic_sorter(telescope_opts),
         attach_mappings = function(_, map)
             map('i', '<C-L>', insert_relative_link_factory("grep", "link"))
+            map('i', '<C-K>', insert_relative_link_factory("grep", "insert"))
             return true
         end,
     }):find()
@@ -95,6 +97,7 @@ M.keywords = function(telescope_opts, opts)
         sorter = conf.generic_sorter(telescope_opts),
         attach_mappings = function(_, map)
             map('i', '<C-L>', insert_relative_link_factory("grep", "link"))
+            map('i', '<C-K>', insert_relative_link_factory("grep", "insert"))
             return true
         end,
     }):find()
