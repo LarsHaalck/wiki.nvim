@@ -12,8 +12,10 @@ Features
     * keywords (using `yaml`-block)
     * outgoing `md` links
     * string grep 
+    * custom action to insert relative link to another `md` file as text (`<C-K>`) or as a link insert (`<C-L>`)
 * simple pandoc export for single or all files to html
 * open `html` file for `md` that is currently open
+* create link for word under cursor or visual selection
 
 Setup
 =============================
@@ -71,8 +73,10 @@ require('wiki').setup {
 }
 ```
 
-### Replacing relative image links with absolute
+### Replacing relative image links with absolute links
 
+When translating `md` to `html` files in some output directory, relative links to images won't work anymore.
+By using the following pandoc filter, relative links are translated to absolute links.
 Just copy the pandoc lua-filter file `img-src-translate.lua` somewhere and add a line to pandoc args:
 
 ```lua
@@ -97,7 +101,12 @@ nnoremap <silent> <leader>wf <cmd>lua require('telescope').extensions.wiki.files
 nnoremap <silent> <leader>wt <cmd>lua require('telescope').extensions.wiki.titles()<CR>
 nnoremap <silent> <leader>wk <cmd>lua require('telescope').extensions.wiki.keywords()<CR>
 nnoremap <silent> <leader>wo <cmd>lua require('telescope').extensions.wiki.outgoing()<CR>
+nnoremap <silent> <leader>wg <cmd>lua require('telescope').extensions.wiki.live_grep()<CR>
+nnoremap <silent> <leader>wh <cmd>lua require('wiki').open_html()<CR>
+
+nnoremap <silent> <leader>wl <cmd>lua require('wiki').create_link()<CR>
+vnoremap <silent> <leader>wl <cmd>lua require('wiki').create_link()<CR>
+
 command! WikiExportAll lua require('wiki').export_all()<CR>
 command! WikiExport lua require('wiki').export()<CR>
-
 ```
