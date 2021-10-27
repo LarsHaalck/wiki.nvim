@@ -102,6 +102,7 @@ nnoremap <silent> <leader>wt <cmd>lua require('telescope').extensions.wiki.title
 nnoremap <silent> <leader>wk <cmd>lua require('telescope').extensions.wiki.keywords()<CR>
 nnoremap <silent> <leader>wo <cmd>lua require('telescope').extensions.wiki.outgoing()<CR>
 nnoremap <silent> <leader>wg <cmd>lua require('telescope').extensions.wiki.live_grep()<CR>
+nnoremap <silent> <leader>wb <cmd>lua require('telescope').extensions.wiki.browser()<CR>
 nnoremap <silent> <leader>wh <cmd>lua require('wiki').open_html()<CR>
 
 nnoremap <silent> <leader>wl <cmd>lua require('wiki').create_link()<CR>

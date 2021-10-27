@@ -7,5 +7,6 @@ return telescope.register_extension { exports = {
         keywords = wiki_telescope.keywords,
         outgoing = wiki_telescope.outgoing,
         live_grep = wiki_telescope.live_grep,
+        browser = wiki_telescope.browser,
     }
 }
