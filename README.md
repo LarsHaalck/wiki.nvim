@@ -23,7 +23,8 @@ Setup
 ## Requirements
 
 * [vim-markdown](https://github.com/plasticboy/vim-markdown)
-* [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) 
+* [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim)
+* [telescope-file-browser.nvim](https://github.com/nvim-telescope/telescope-file-browser.nvim) (optional)
 * [plenary.nvim](https://github.com/nvim-lua/plenary.nvim)
 * [ripgrep](https://github.com/BurntSushi/ripgrep)
 * [pandoc](https://pandoc.org/) (for optional html export)
@@ -33,6 +34,10 @@ Setup
 Using [vim-plug](https://github.com/junegunn/vim-plug):
 
 ```viml
+# Install telescope
+Plug 'nvim-telescope/telescope.nvim'                " needed
+Plug 'nvim-telescope/telescope-file-browser.nvim'   " optional
+
 " Install plenary
 Plug 'nvim-lua/plenary.nvim'
 

@@ -139,7 +139,7 @@ M.browser = function(telescope_opts, opts)
     telescope_opts = telescope_opts or {}
     opts = opts or config.options
     telescope_opts.cwd = opts.wiki_dir
-    require('telescope.builtin').file_browser(telescope_opts)
+    require('telescope').extensions.file_browser.file_browser(telescope_opts)
 end
 
 return M
