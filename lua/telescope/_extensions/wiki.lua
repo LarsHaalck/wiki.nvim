@@ -1,6 +1,5 @@
 local telescope = require('telescope')
 local wiki_telescope = require('wiki.telescope')
-require('telescope').load_extension('file_browser')
 
 return telescope.register_extension { exports = {
         files = wiki_telescope.files,

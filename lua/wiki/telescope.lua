@@ -136,6 +136,7 @@ M.live_grep = function(telescope_opts, opts)
 end
 
 M.browser = function(telescope_opts, opts)
+    require('telescope').load_extension('file_browser')
     telescope_opts = telescope_opts or {}
     opts = opts or config.options
     telescope_opts.cwd = opts.wiki_dir
